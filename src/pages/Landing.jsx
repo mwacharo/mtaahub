@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Phone, Mail, MapPin, Facebook, Twitter, Instagram, Menu, X, ChevronRight, Award, Users, TrendingUp, Heart } from 'lucide-react';
+import { useEffect } from "react";
+import { fetchVendorProducts } from "../api/products"; // ✅ from the api folder we made earlier
 
 import { Link } from "react-router-dom";
 // Shared Footer Component
@@ -201,8 +203,8 @@ const useCart = () => {
         addToCart: (product) => {
             // Implement your cart logic here
             console.log('Added to cart:', product);
-         
-    
+
+
         }
     };
 };
@@ -210,14 +212,30 @@ const useCart = () => {
 const ProductsPage = () => {
     const { addToCart } = useCart();
 
-    const products = [
-        { id: 1, name: 'Classic Golden Syrup', flavor: 'Original', size: '500ml', price: 'KSh 3500' },
-        { id: 2, name: 'Maple Delight', flavor: 'Maple', size: '500ml', price: 'KSh 4000' },
-        { id: 3, name: 'Vanilla Dream', flavor: 'Vanilla', size: '500ml', price: 'KSh 3800' },
-        { id: 4, name: 'Caramel Bliss', flavor: 'Caramel', size: '500ml', price: 'KSh 4200' },
-        { id: 5, name: 'Strawberry Splash', flavor: 'Strawberry', size: '500ml', price: 'KSh 3900' },
-        { id: 6, name: 'Chocolate Heaven', flavor: 'Chocolate', size: '500ml', price: 'KSh 4100' }
-    ];
+    // const products = [
+    //     { id: 1, name: 'Classic Golden Syrup', flavor: 'Original', size: '500ml', price: 'KSh 3500' },
+    //     { id: 2, name: 'Maple Delight', flavor: 'Maple', size: '500ml', price: 'KSh 4000' },
+    //     { id: 3, name: 'Vanilla Dream', flavor: 'Vanilla', size: '500ml', price: 'KSh 3800' },
+    //     { id: 4, name: 'Caramel Bliss', flavor: 'Caramel', size: '500ml', price: 'KSh 4200' },
+    //     { id: 5, name: 'Strawberry Splash', flavor: 'Strawberry', size: '500ml', price: 'KSh 3900' },
+    //     { id: 6, name: 'Chocolate Heaven', flavor: 'Chocolate', size: '500ml', price: 'KSh 4100' }
+    // ];
+
+
+
+    const [products, setProducts] = useState([]);
+
+    useEffect(() => {
+        fetchVendorProducts()
+            .then((data) => {
+                // Laravel response might wrap data, e.g., { data: [...] }
+                setProducts(data.data || data);
+                console.log("Fetched products:", data);
+            })
+            .catch((err) => {
+                console.error("Error loading products:", err);
+            });
+    }, []);
 
     const handleAddToCart = (product) => {
         addToCart(product);
@@ -245,11 +263,17 @@ const ProductsPage = () => {
                                 <div className="w-24 h-32 bg-amber-600 rounded-lg"></div>
                             </div>
                             <div className="p-6">
-                                <h3 className="text-xl font-bold mb-2 text-gray-800">{product.name}</h3>
-                                <p className="text-gray-600 mb-1">Flavor: {product.flavor}</p>
-                                <p className="text-gray-600 mb-3">Size: {product.size}</p>
+                                <h3 className="text-xl font-bold mb-2 text-gray-800">{product.product_name}</h3>
+                                <p className="text-gray-600 mb-1">Flavor: {product.description}</p>
+                                <p className="text-gray-600 mb-1">SKU: {product.sku}</p>
+                                {/* <p className="text-gray-600 mb-1">Vendor: {product.vendor?.name}</p> */}
+                                {/* Show price from prices array if available */}
                                 <div className="flex justify-between items-center">
-                                    <span className="text-2xl font-bold text-amber-600">{product.price}</span>
+                                    <span className="text-2xl font-bold text-amber-600">
+                                        {product.prices && product.prices.length > 0
+                                            ? product.prices[0].amount
+                                            : product.base_price || "N/A"}
+                                    </span>
                                     <button
                                         onClick={() => handleAddToCart(product)}
                                         className="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors"
