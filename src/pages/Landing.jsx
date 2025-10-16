@@ -4,6 +4,10 @@ import { useEffect } from "react";
 import { fetchVendorProducts } from "../api/products"; // ✅ from the api folder we made earlier
 
 import { Link } from "react-router-dom";
+
+// cart context
+import { useCart } from "../context/CartContext";
+
 // Shared Footer Component
 const Footer = () => {
     return (
@@ -13,9 +17,9 @@ const Footer = () => {
                     <div>
                         <div className="flex items-center space-x-2 mb-4">
                             <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
-                                <span className="text-white font-bold">SM</span>
+                                <span className="text-white font-bold">MK0</span>
                             </div>
-                            <span className="text-xl font-bold">Strongman</span>
+                            <span className="text-xl font-bold">Mwamko Herbs</span>
                         </div>
                         <p className="text-gray-400 text-sm">
                             Premium quality syrups crafted with care for your beverages and culinary creations.
@@ -67,7 +71,7 @@ const Footer = () => {
                 </div>
 
                 <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400 text-sm">
-                    <p>&copy; 2025 Strongman Syrup. All rights reserved.</p>
+                    <p>&copy; 2025 MWAMKO Herbs. All rights reserved.</p>
                 </div>
             </div>
         </footer>
@@ -198,28 +202,20 @@ const AboutPage = () => {
 // Products Page Component
 // Products Page Component with Cart functionality
 // Dummy useCart hook for demonstration; replace with your actual cart logic or import
-const useCart = () => {
-    return {
-        addToCart: (product) => {
-            // Implement your cart logic here
-            console.log('Added to cart:', product);
+// const useCart = () => {
+//     return {
+//         addToCart: (product) => {
+//             // Implement your cart logic here
+//             console.log('Added to cart:', product);
 
 
-        }
-    };
-};
+//         }
+//     };
+// };
 
 const ProductsPage = () => {
-    const { addToCart } = useCart();
+    // const { addToCart } = useCart();
 
-    // const products = [
-    //     { id: 1, name: 'Classic Golden Syrup', flavor: 'Original', size: '500ml', price: 'KSh 3500' },
-    //     { id: 2, name: 'Maple Delight', flavor: 'Maple', size: '500ml', price: 'KSh 4000' },
-    //     { id: 3, name: 'Vanilla Dream', flavor: 'Vanilla', size: '500ml', price: 'KSh 3800' },
-    //     { id: 4, name: 'Caramel Bliss', flavor: 'Caramel', size: '500ml', price: 'KSh 4200' },
-    //     { id: 5, name: 'Strawberry Splash', flavor: 'Strawberry', size: '500ml', price: 'KSh 3900' },
-    //     { id: 6, name: 'Chocolate Heaven', flavor: 'Chocolate', size: '500ml', price: 'KSh 4100' }
-    // ];
 
 
 
@@ -237,18 +233,39 @@ const ProductsPage = () => {
             });
     }, []);
 
-    const handleAddToCart = (product) => {
+    // const handleAddToCart = (product) => {
+    //     addToCart(product);
+    //     alert(`${product.name} added to cart!`);
+
+    //     // Redirect to checkout page  
+
+    //     // use link from react-router-dom
+
+    //     window.location.href = '/checkout';
+    // };
+
+
+    const handleAddToCart = async (product) => {
+        const { addToCart, getCartMetadata } = useCart();
+        const meta = getCartMetadata();
+
         addToCart(product);
-        alert(`${product.name} added to cart!`);
 
-        // Redirect to checkout page  
+        // Optionally sync to backend
+        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/cart/add`, {
+            product_id: product.id,
+            quantity: 1,
+            ...meta, // includes vendor_token and cart_token
+        });
 
-        // use link from react-router-dom
-
-        window.location.href = '/checkout';
+        alert(`${product.product_name} added to cart!`);
     };
 
     return (
+
+
+
+
         <div className="py-16 bg-gray-50">
             <div className="container mx-auto px-4">
                 <div className="text-center mb-12">
@@ -257,50 +274,59 @@ const ProductsPage = () => {
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-8">
-                    {products.map((product) => (
-                        <div key={product.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow">
-                            <div className="h-48 bg-gradient-to-br from-amber-200 to-orange-200 flex items-center justify-center">
-                                <div className="w-24 h-32 bg-amber-600 rounded-lg"></div>
-                            </div>
-                            <div className="p-6">
-                                <h3 className="text-xl font-bold mb-2 text-gray-800">{product.product_name}</h3>
-                                <p className="text-gray-600 mb-1">Flavor: {product.description}</p>
-                                <p className="text-gray-600 mb-1">SKU: {product.sku}</p>
-                                {/* <p className="text-gray-600 mb-1">Vendor: {product.vendor?.name}</p> */}
-                                {/* Show price from prices array if available */}
-                                <div className="flex justify-between items-center">
-                                    <span className="text-2xl font-bold text-amber-600">
-                                        {product.prices && product.prices.length > 0
-                                            ? product.prices[0].amount
-                                            : product.base_price || "N/A"}
-                                    </span>
-                                    <button
-                                        onClick={() => handleAddToCart(product)}
-                                        className="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors"
-                                    >
-                                        Add to Cart
-                                    </button>
+                    {products.map((product) => {
+                        // Get image if available
+                        const imageUrl = product.images?.[0]?.image_path
+                            ? `${import.meta.env.VITE_APP_URL || ""}${product.images[0].image_path}`
+                            : "https://via.placeholder.com/150x150?text=No+Image";
+
+                        // Get price (first available price or base_price)
+                        const price =
+                            product.prices?.[0]?.base_price ||
+                            product.base_price ||
+                            "N/A";
+
+                        return (
+                            <div
+                                key={product.id}
+                                className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow"
+                            >
+                                <div className="h-48 flex items-center justify-center bg-gray-100">
+                                    <img
+                                        src={imageUrl}
+                                        alt={product.product_name}
+                                        className="h-full w-full object-cover"
+                                    />
+                                </div>
+
+                                <div className="p-6">
+                                    <h3 className="text-xl font-bold mb-2 text-gray-800">
+                                        {product.product_name}
+                                    </h3>
+                                    <p className="text-gray-600 mb-2">
+                                        {product.description || "No description available"}
+                                    </p>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-2xl font-bold text-amber-600">
+                                            {price} KSH
+                                        </span>
+                                        <button
+                                            onClick={() => handleAddToCart(product)}
+                                            className="bg-amber-600 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors"
+                                        >
+                                            Add to Cart
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
-                <div className="flex justify-center mt-12">
-                    <Link
-                        to="/checkout"
-                        style={{
-                            backgroundColor: "#2563eb",
-                            color: "#fff",
-                            padding: "10px 20px",
-                            borderRadius: "8px",
-                            textDecoration: "none",
-                        }}
-                    >
-                        Go to Checkout
-                    </Link>
-                </div>
+
+
             </div>
         </div>
+
     );
 };
 
@@ -507,8 +533,8 @@ const App = () => {
                                 <span className="text-white font-bold text-xl">SM</span>
                             </div>
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-800">Strongman</h1>
-                                <p className="text-xs text-amber-600">Premium Syrups</p>
+                                <h1 className="text-2xl font-bold text-gray-800">Mwamko Herbs</h1>
+                                <p className="text-xs text-amber-600">Premium Syrups & Herbs</p>
                             </div>
                         </div>
 
