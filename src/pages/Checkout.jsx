@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MapPin, Phone, Mail, ShoppingBag, User, Home } from 'lucide-react';
-
 import { useCart } from '../context/CartContext';
+import { createOrder } from '../api/orders';
 
 const CheckoutPage = () => {
-    const { cartItems, getCartTotal, clearCart } = useCart();
+    const navigate = useNavigate();
+    const { cartItems, getCartTotal, clearCart, getCartMetadata } = useCart();
     const [formData, setFormData] = useState({
         fullName: '',
         email: '',
@@ -16,29 +18,86 @@ const CheckoutPage = () => {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
+        if (!formData.fullName || !formData.email || !formData.phone || !formData.city || !formData.address) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
         setLoading(true);
 
-        // You can use orderData for API calls if needed
-        // const orderData = {
-        //     customer: formData,
-        //     items: cartItems,
-        //     total: getCartTotal(),
-        //     orderDate: new Date().toISOString()
-        // };
+        const metadata = getCartMetadata();
+        const subtotal = getCartTotal();
+        const shippingCharges = 0; // Free shipping
+        const totalPrice = subtotal + shippingCharges;
+
+        // ✅ Generate unique order number
+        const orderNo = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+        
+        // ✅ Format data to match Laravel backend expectations
+        const orderData = {
+            // Required fields
+            order_no: orderNo,
+            warehouse_id: 1, // ⚠️ Replace with actual warehouse ID from your system
+            status_id: 1, // ⚠️ 1 = Pending/New order status
+            total_price: totalPrice,
+            sub_total: subtotal,
+            amount_paid: 0, // Not paid yet (COD or pending payment)
+            
+            // Optional fields
+            shipping_charges: shippingCharges,
+            paid: false,
+            platform: 'web',
+            source: 'ecommerce',
+            customer_notes: formData.notes || null,
+            
+            // Customer data - matching backend format
+            customer: {
+                full_name: formData.fullName,
+                email: formData.email,
+                phone: formData.phone,
+                city: formData.city,
+                address: formData.address,
+                zone_id: null, // Add if you have zone selection
+                region: null,
+                zipcode: null,
+            },
+            
+            // Order items - matching backend format with sku and unit_price
+            order_items: cartItems.map(item => ({
+                product_id: item.id,
+                sku: item.sku , // ⚠️ Ensure your products have SKU
+                quantity: item.quantity,
+                unit_price: parseFloat(item.price.replace('KSh ', ''))
+            })),
+            
+            // Shipping address (optional but recommended)
+            addresses: [
+                {
+                    type: 'shipping',
+                    full_name: formData.fullName,
+                    email: formData.email,
+                    phone: formData.phone,
+                    address: formData.address,
+                    city: formData.city,
+                    region: null,
+                    zipcode: null,
+                }
+            ],
+            
+            // Metadata from cart context
+            ...metadata,
+        };
+
+        console.log('📦 Sending order data:', orderData); // Debug log
 
         try {
-            // Replace with your API call
-            // await api.post('/orders', orderData);
-
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
+            const response = await createOrder(orderData);
+            console.log('✅ Order created:', response);
+            
             setSuccess(true);
             clearCart();
 
-            // Reset form
             setFormData({
                 fullName: '',
                 email: '',
@@ -48,12 +107,13 @@ const CheckoutPage = () => {
                 notes: ''
             });
 
+            // Auto-redirect after 3 seconds
             setTimeout(() => {
-                setSuccess(false);
-            }, 5000);
+                navigate('/');
+            }, 3000);
         } catch (error) {
             console.error('Order submission failed:', error);
-            alert('Failed to submit order. Please try again.');
+            alert(`Failed to submit order: ${error.message}`);
         } finally {
             setLoading(false);
         }
@@ -65,7 +125,13 @@ const CheckoutPage = () => {
                 <div className="text-center">
                     <ShoppingBag size={80} className="mx-auto text-gray-300 mb-4" />
                     <h2 className="text-2xl font-bold text-gray-800 mb-2">No items in cart</h2>
-                    <p className="text-gray-600">Please add items before checking out</p>
+                    <p className="text-gray-600 mb-6">Please add items before checking out</p>
+                    <button
+                        onClick={() => navigate('/products')}
+                        className="bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 transition-colors"
+                    >
+                        Continue Shopping
+                    </button>
                 </div>
             </div>
         );
@@ -85,7 +151,7 @@ const CheckoutPage = () => {
                         Thank you for your order. We'll contact you shortly to confirm delivery details.
                     </p>
                     <button
-                        onClick={() => window.location.reload()}
+                        onClick={() => navigate('/')}
                         className="bg-amber-600 text-white px-8 py-3 rounded-lg hover:bg-amber-700 transition-colors"
                     >
                         Continue Shopping
@@ -101,13 +167,11 @@ const CheckoutPage = () => {
                 <h1 className="text-4xl font-bold mb-8 text-gray-800">Checkout</h1>
 
                 <div className="grid lg:grid-cols-3 gap-8">
-                    {/* Checkout Form */}
                     <div className="lg:col-span-2">
-                        <form className="bg-white rounded-xl shadow-md p-8" onSubmit={handleSubmit}>
+                        <div className="bg-white rounded-xl shadow-md p-8">
                             <h2 className="text-2xl font-bold mb-6 text-gray-800">Delivery Information</h2>
 
                             <div className="space-y-6">
-                                {/* Full Name */}
                                 <div>
                                     <label className="block text-gray-700 font-medium mb-2 flex items-center">
                                         <User size={18} className="mr-2 text-amber-600" />
@@ -123,7 +187,6 @@ const CheckoutPage = () => {
                                     />
                                 </div>
 
-                                {/* Email & Phone */}
                                 <div className="grid md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-gray-700 font-medium mb-2 flex items-center">
@@ -156,7 +219,6 @@ const CheckoutPage = () => {
                                     </div>
                                 </div>
 
-                                {/* City */}
                                 <div>
                                     <label className="block text-gray-700 font-medium mb-2 flex items-center">
                                         <MapPin size={18} className="mr-2 text-amber-600" />
@@ -172,7 +234,6 @@ const CheckoutPage = () => {
                                     />
                                 </div>
 
-                                {/* Address */}
                                 <div>
                                     <label className="block text-gray-700 font-medium mb-2 flex items-center">
                                         <Home size={18} className="mr-2 text-amber-600" />
@@ -188,7 +249,6 @@ const CheckoutPage = () => {
                                     />
                                 </div>
 
-                                {/* Additional Notes */}
                                 <div>
                                     <label className="block text-gray-700 font-medium mb-2">
                                         Additional Notes (Optional)
@@ -202,10 +262,9 @@ const CheckoutPage = () => {
                                     />
                                 </div>
                             </div>
-                        </form>
+                        </div>
                     </div>
 
-                    {/* Order Summary */}
                     <div className="lg:col-span-1">
                         <div className="bg-white rounded-xl shadow-md p-6 sticky top-24">
                             <h2 className="text-2xl font-bold mb-6 text-gray-800">Order Summary</h2>
@@ -220,7 +279,7 @@ const CheckoutPage = () => {
                                                 <p className="font-medium text-gray-800">{item.name}</p>
                                                 <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                                             </div>
-                                            <p className="font-semibold text-gray-800">KSh {subtotal}</p>
+                                            <p className="font-semibold text-gray-800">KSh {subtotal.toFixed(2)}</p>
                                         </div>
                                     );
                                 })}
@@ -244,8 +303,7 @@ const CheckoutPage = () => {
                             </div>
 
                             <button
-                                type="submit"
-                                form="checkout-form"
+                                onClick={handleSubmit}
                                 disabled={loading}
                                 className="w-full bg-gradient-to-r from-amber-600 to-orange-500 text-white py-4 rounded-lg font-semibold hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                             >

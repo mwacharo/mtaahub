@@ -5,6 +5,9 @@ import { fetchVendorProducts } from "../api/products"; // ✅ from the api folde
 
 import { Link } from "react-router-dom";
 
+import { useNavigate } from 'react-router-dom';
+
+
 // cart context
 import { useCart } from "../context/CartContext";
 
@@ -29,10 +32,11 @@ const Footer = () => {
                     <div>
                         <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
                         <ul className="space-y-2 text-gray-400 text-sm">
-                            <li><button className="hover:text-amber-500 transition-colors">Home</button></li>
+                        <li><button className="hover:text-amber-500 transition-colors">Products</button></li>
+
+                            {/* <li><button className="hover:text-amber-500 transition-colors">Home</button></li>
                             <li><button className="hover:text-amber-500 transition-colors">About Us</button></li>
-                            <li><button className="hover:text-amber-500 transition-colors">Products</button></li>
-                            <li><button className="hover:text-amber-500 transition-colors">Gallery</button></li>
+                            <li><button className="hover:text-amber-500 transition-colors">Gallery</button></li> */}
                         </ul>
                     </div>
 
@@ -199,22 +203,12 @@ const AboutPage = () => {
     );
 };
 
-// Products Page Component
-// Products Page Component with Cart functionality
-// Dummy useCart hook for demonstration; replace with your actual cart logic or import
-// const useCart = () => {
-//     return {
-//         addToCart: (product) => {
-//             // Implement your cart logic here
-//             console.log('Added to cart:', product);
 
-
-//         }
-//     };
-// };
 
 const ProductsPage = () => {
-    // const { addToCart } = useCart();
+    const navigate = useNavigate();
+
+    const { addToCart } = useCart();
 
 
 
@@ -233,31 +227,36 @@ const ProductsPage = () => {
             });
     }, []);
 
-    // const handleAddToCart = (product) => {
-    //     addToCart(product);
-    //     alert(`${product.name} added to cart!`);
-
-    //     // Redirect to checkout page  
-
-    //     // use link from react-router-dom
-
-    //     window.location.href = '/checkout';
-    // };
+ 
 
 
-    const handleAddToCart = async (product) => {
-        const { addToCart, getCartMetadata } = useCart();
-        const meta = getCartMetadata();
 
-        addToCart(product);
+    const handleAddToCart = (product) => {
 
-        // Optionally sync to backend
-        await axios.post(`${import.meta.env.VITE_API_BASE_URL}/cart/add`, {
-            product_id: product.id,
-            quantity: 1,
-            ...meta, // includes vendor_token and cart_token
-        });
+         console.log('🔍 Product from API:', product);
+    console.log('🔍 Product SKU:', product.sku);
+        // Transform product data to match cart format
+        const cartProduct = {
+            id: product.id,
+            name: product.product_name,
+            price: `KSh ${product.prices?.[0]?.base_price || product.base_price || 0}`,
+            image: product.images?.[0]?.image_path 
+                ? `${import.meta.env.VITE_APP_URL || ""}${product.images[0].image_path}`
+                : "https://via.placeholder.com/150x150?text=No+Image",
+            sku: product.sku, // ✅ Add SKU field
 
+
+
+        };
+
+        addToCart(cartProduct);
+//           if (confirm(`${product.product_name} added to cart! View cart now?`)) {
+//     window.location.href = "/cart";
+//   }
+
+  if (confirm(`${product.product_name} added to cart! View cart now?`)) {
+    navigate("/cart"); // ✅ No page reload - state persists!
+  } 
         alert(`${product.product_name} added to cart!`);
     };
 
@@ -329,6 +328,10 @@ const ProductsPage = () => {
 
     );
 };
+
+
+// Cart page 
+
 
 // Gallery Page Component
 const GalleryPage = () => {
@@ -494,12 +497,12 @@ const App = () => {
 
     const navItems = [
         { name: 'Home', path: 'home' },
-        { name: 'About', path: 'about' },
+        // { name: 'About', path: 'about' },
 
         { name: 'Products', path: 'products' },
-        { name: 'Cart', path: 'cart' },  // Add this
+        // { name: 'Cart', path: 'cart' },  // Add this
 
-        { name: 'Gallery', path: 'gallery' },
+        // { name: 'Gallery', path: 'gallery' },
         { name: 'Contact', path: 'contact' }
 
     ];
@@ -512,14 +515,17 @@ const App = () => {
 
     const renderPage = () => {
         switch (currentPage) {
-            case 'home': return <HomePage onNavigate={handleNavigate} />;
+            // case 'home': return <HomePage onNavigate={handleNavigate} />;
             case 'about': return <AboutPage />;
             case 'products': return <ProductsPage />;
             case 'checkout': return <CheckoutPage />;
+            case 'Cart' : return <CartPage/>
 
             case 'gallery': return <GalleryPage />;
             case 'contact': return <ContactPage />;
-            default: return <HomePage onNavigate={handleNavigate} />;
+            // default: return <HomePage onNavigate={handleNavigate} />;
+        default: return <ProductsPage onNavigate={handleNavigate} />;
+
         }
     };
 
