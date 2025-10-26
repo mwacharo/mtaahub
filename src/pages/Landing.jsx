@@ -32,7 +32,7 @@ const Footer = () => {
                     <div>
                         <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
                         <ul className="space-y-2 text-gray-400 text-sm">
-                        <li><button className="hover:text-amber-500 transition-colors">Products</button></li>
+                            <li><button className="hover:text-amber-500 transition-colors">Products</button></li>
 
                             {/* <li><button className="hover:text-amber-500 transition-colors">Home</button></li>
                             <li><button className="hover:text-amber-500 transition-colors">About Us</button></li>
@@ -229,20 +229,20 @@ const ProductsPage = () => {
             });
     }, []);
 
- 
+
 
 
 
     const handleAddToCart = (product) => {
 
-         console.log('🔍 Product from API:', product);
-    console.log('🔍 Product SKU:', product.sku);
+        console.log('🔍 Product from API:', product);
+        console.log('🔍 Product SKU:', product.sku);
         // Transform product data to match cart format
         const cartProduct = {
             id: product.id,
             name: product.product_name,
             price: `KSh ${product.prices?.[0]?.base_price || product.base_price || 0}`,
-            image: product.images?.[0]?.image_path 
+            image: product.images?.[0]?.image_path
                 ? `${import.meta.env.VITE_APP_URL || ""}${product.images[0].image_path}`
                 : "https://via.placeholder.com/150x150?text=No+Image",
             sku: product.sku, // ✅ Add SKU field
@@ -252,13 +252,13 @@ const ProductsPage = () => {
         };
 
         addToCart(cartProduct);
-//           if (confirm(`${product.product_name} added to cart! View cart now?`)) {
-//     window.location.href = "/cart";
-//   }
+        //           if (confirm(`${product.product_name} added to cart! View cart now?`)) {
+        //     window.location.href = "/cart";
+        //   }
 
-  if (confirm(`${product.product_name} added to cart! View cart now?`)) {
-    navigate("/cart"); // ✅ No page reload - state persists!
-  } 
+        if (confirm(`${product.product_name} added to cart! View cart now?`)) {
+            navigate("/cart"); // ✅ No page reload - state persists!
+        }
         alert(`${product.product_name} added to cart!`);
     };
 
@@ -281,12 +281,12 @@ const ProductsPage = () => {
                         //     ? `${import.meta.env.VITE_APP_URL || ""}${product.images[0].image_path}`
                         //     : "https://via.placeholder.com/150x150?text=No+Image";
 
-                            const BASE_URL = import.meta.env.VITE_ASSETS_BASE_URL;
+                        const BASE_URL = import.meta.env.VITE_ASSETS_BASE_URL;
 
 
-                            const imageUrl = product.images?.[0]?.image_path
-      ? `${BASE_URL}${product.images[0].image_path}`
-      : "https://via.placeholder.com/150x150?text=No+Image";
+                        const imageUrl = product.images?.[0]?.image_path
+                            ? `${BASE_URL}${product.images[0].image_path}`
+                            : "https://via.placeholder.com/150x150?text=No+Image";
 
                         // Get price (first available price or base_price)
                         const price =
@@ -528,12 +528,12 @@ const App = () => {
             case 'about': return <AboutPage />;
             case 'products': return <ProductsPage />;
             case 'checkout': return <CheckoutPage />;
-            case 'Cart' : return <CartPage/>
+            case 'Cart': return <CartPage />
 
             case 'gallery': return <GalleryPage />;
             case 'contact': return <ContactPage />;
             // default: return <HomePage onNavigate={handleNavigate} />;
-        default: return <ProductsPage onNavigate={handleNavigate} />;
+            default: return <ProductsPage onNavigate={handleNavigate} />;
 
         }
     };
