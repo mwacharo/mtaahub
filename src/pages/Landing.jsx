@@ -45,7 +45,7 @@ const Footer = () => {
                         <ul className="space-y-3 text-gray-400 text-sm">
                             <li className="flex items-center space-x-2">
                                 <Phone size={16} className="text-amber-500" />
-                                <span>254741821113</span>
+                                <span>+254782943719</span>
                             </li>
                             <li className="flex items-center space-x-2">
                                 <Mail size={16} className="text-amber-500" />
@@ -453,7 +453,7 @@ const ContactPage = () => {
                                     </div>
                                     <div>
                                         <h3 className="font-semibold text-gray-800 mb-1">Phone Number</h3>
-                                        <p className="text-gray-600">254750730186</p>
+                                        <p className="text-gray-600">+254782943719</p>
                                     </div>
                                 </div>
 
@@ -463,7 +463,7 @@ const ContactPage = () => {
                                     </div>
                                     <div>
                                         <h3 className="font-semibold text-gray-800 mb-1">Email</h3>
-                                        <p className="text-gray-600">strongmanweb@gmail.com</p>
+                                        <p className="text-gray-600">mwamkoherbs@gmail.com</p>
                                     </div>
                                 </div>
 
@@ -473,7 +473,7 @@ const ContactPage = () => {
                                     </div>
                                     <div>
                                         <h3 className="font-semibold text-gray-800 mb-1">Website</h3>
-                                        <p className="text-gray-600">www.strongmansyrup.co.ke</p>
+                                        <p className="text-gray-600">mwamkoherbs.com</p>
                                     </div>
                                 </div>
                             </div>
@@ -483,7 +483,7 @@ const ContactPage = () => {
                             <h3 className="font-bold text-lg mb-3">Business Hours</h3>
                             <p className="mb-1">Monday - Friday: 8:00 AM - 6:00 PM</p>
                             <p className="mb-1">Saturday: 9:00 AM - 4:00 PM</p>
-                            <p>Sunday: Closed</p>
+                            <p>Sunday: Open</p>
                         </div>
                     </div>
                 </div>
