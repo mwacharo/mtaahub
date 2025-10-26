@@ -281,6 +281,9 @@ const ProductsPage = () => {
                         //     ? `${import.meta.env.VITE_APP_URL || ""}${product.images[0].image_path}`
                         //     : "https://via.placeholder.com/150x150?text=No+Image";
 
+                            const BASE_URL = import.meta.env.VITE_ASSETS_BASE_URL;
+
+
                             const imageUrl = product.images?.[0]?.image_path
       ? `${BASE_URL}${product.images[0].image_path}`
       : "https://via.placeholder.com/150x150?text=No+Image";
