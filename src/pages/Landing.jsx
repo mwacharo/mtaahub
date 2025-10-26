@@ -277,9 +277,13 @@ const ProductsPage = () => {
                 <div className="grid md:grid-cols-3 gap-8">
                     {products.map((product) => {
                         // Get image if available
-                        const imageUrl = product.images?.[0]?.image_path
-                            ? `${import.meta.env.VITE_APP_URL || ""}${product.images[0].image_path}`
-                            : "https://via.placeholder.com/150x150?text=No+Image";
+                        // const imageUrl = product.images?.[0]?.image_path
+                        //     ? `${import.meta.env.VITE_APP_URL || ""}${product.images[0].image_path}`
+                        //     : "https://via.placeholder.com/150x150?text=No+Image";
+
+                            const imageUrl = product.images?.[0]?.image_path
+      ? `${BASE_URL}${product.images[0].image_path}`
+      : "https://via.placeholder.com/150x150?text=No+Image";
 
                         // Get price (first available price or base_price)
                         const price =
