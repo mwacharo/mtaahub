@@ -7,9 +7,14 @@ import { Link } from "react-router-dom";
 
 import { useNavigate } from 'react-router-dom';
 
+import { FloatingWhatsApp } from 'react-floating-whatsapp';
 
+// 
 // cart context
 import { useCart } from "../context/CartContext";
+
+
+
 
 // Shared Footer Component
 const Footer = () => {
@@ -499,6 +504,9 @@ const ContactPage = () => {
     );
 };
 
+
+
+
 // Main App Component with Page Routing
 const App = () => {
     const [currentPage, setCurrentPage] = useState('home');
@@ -540,6 +548,15 @@ const App = () => {
 
     return (
         <div className="min-h-screen flex flex-col">
+
+
+              {/* WhatsApp Floating Button */}
+            <FloatingWhatsApp
+                phoneNumber="254782943719"
+                accountName="Mwamko Herbs"
+                chatMessage="Hello 👋 How can we help you today?"
+                statusMessage="Typically replies within 3 minutes "
+            />
             <header className="bg-white shadow-md sticky top-0 z-50">
                 <div className="container mx-auto px-4">
                     <div className="flex justify-between items-center py-4">
